@@ -1,130 +1,151 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useFavorites } from '../contexts/FavoritesContext';
 
 const DogBreedDetail = () => {
   const { id } = useParams();
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [comment, setComment] = useState('');
-  const [comments, setComments] = useState([]);
+  const [breed, setBreed] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const API_KEY = 'live_LjTiXLNveHjkoh664tkodk7f4L3A4pIPGVi8Bx0jUXvlpXI5bZiyzotUSHsOapxo';
+  const { isFavorite, addToFavorites, removeFromFavorites } = useFavorites();
 
-  // Mock data - replace with actual API call
-  const breedData = {
-    name: 'Golden Retriever',
-    origin: 'Scotland',
-    temperament: 'Friendly, Intelligent, Devoted',
-    description: 'The Golden Retriever is a large-sized breed of dog bred as gun dogs to retrieve shot waterfowl and upland game birds during hunting and shooting parties, and were named retriever because of their ability to retrieve shot game undamaged.',
-    imageUrl: '/golden-retriever.jpg',
-    videoUrl: 'https://www.youtube.com/embed/your-video-id'
-  };
+  useEffect(() => {
+    const fetchBreedDetail = async () => {
+      try {
+        const response = await fetch(
+          'https://api.thedogapi.com/v1/breeds',
+          {
+            headers: {
+              'x-api-key': API_KEY
+            }
+          }
+        );
+        const data = await response.json();
+        const selectedBreed = data.find(b => b.id === parseInt(id));
+        setBreed(selectedBreed);
+      } catch (error) {
+        console.error('Error fetching breed detail:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleAddComment = (e) => {
-    e.preventDefault();
-    if (comment.trim()) {
-      setComments([
-        ...comments,
-        { id: Date.now(), text: comment, user: 'User', timestamp: new Date() }
-      ]);
-      setComment('');
+    fetchBreedDetail();
+  }, [id]);
+
+  const handleFavoriteClick = () => {
+    if (isFavorite(breed.id)) {
+      removeFromFavorites(breed.id);
+    } else {
+      addToFavorites(breed);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!breed) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h2 className="text-2xl font-bold mb-4">Anjing tidak ditemukan</h2>
+        <Link 
+          to="/breeds"
+          className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-6 py-2 rounded-full"
+        >
+          Kembali ke Daftar
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Breed Header */}
-        <div className="relative">
-          <img 
-            src={breedData.imageUrl} 
-            alt={breedData.name}
-            className="w-full h-[500px] object-cover rounded-xl"
-          />
-          <button
-            onClick={() => setIsFavorite(!isFavorite)}
-            className="absolute top-4 right-4 bg-white p-3 rounded-full shadow-lg"
-          >
-            <svg 
-              className={`w-6 h-6 ${isFavorite ? 'text-red-500' : 'text-gray-400'}`}
-              fill={isFavorite ? 'currentColor' : 'none'}
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Breed Information */}
-        <div className="mt-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{breedData.name}</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Asal</h2>
-              <p className="text-gray-600 mb-4">{breedData.origin}</p>
-              <h2 className="text-xl font-semibold mb-2">Temperamen</h2>
-              <p className="text-gray-600 mb-4">{breedData.temperament}</p>
-              <h2 className="text-xl font-semibold mb-2">Deskripsi</h2>
-              <p className="text-gray-600">{breedData.description}</p>
+    <div className="pt-20 min-h-screen bg-gradient-to-b from-white to-blue-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-xl overflow-hidden"
+        >
+          <div className="md:flex">
+            <div className="md:flex-shrink-0 md:w-1/2">
+              <img
+                className="h-96 w-full object-cover md:h-full"
+                src={breed.image?.url}
+                alt={breed.name}
+              />
             </div>
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Video</h2>
-              <div className="aspect-w-16 aspect-h-9">
-                <iframe
-                  src={breedData.videoUrl}
-                  className="w-full h-[300px] rounded-lg"
-                  allowFullScreen
-                ></iframe>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Comments Section */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Komentar</h2>
-          <form onSubmit={handleAddComment} className="mb-8">
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Tambahkan komentar..."
-              rows="4"
-            ></textarea>
-            <button
-              type="submit"
-              className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
-            >
-              Kirim Komentar
-            </button>
-          </form>
-
-          {/* Comments List */}
-          <div className="space-y-6">
-            {comments.map((comment) => (
-              <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold">{comment.user}</h3>
-                    <p className="text-gray-600 mt-1">{comment.text}</p>
-                  </div>
-                  <button className="text-gray-400 hover:text-red-500">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+            <div className="p-8 md:w-1/2">
+              <div className="flex justify-between items-center">
+                <div className="uppercase tracking-wide text-sm text-blue-600 font-semibold">
+                  {breed.breed_group}
                 </div>
-                <p className="text-sm text-gray-400 mt-2">
-                  {new Date(comment.timestamp).toLocaleDateString()}
-                </p>
+                <button
+                  onClick={handleFavoriteClick}
+                  className={`p-2 rounded-full transition-colors duration-300 ${
+                    isFavorite(breed.id)
+                      ? 'text-red-500 hover:text-red-600'
+                      : 'text-gray-400 hover:text-red-500'
+                  }`}
+                >
+                  <svg
+                    className="w-6 h-6 fill-current"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                </button>
               </div>
-            ))}
+              <h1 className="mt-2 text-4xl font-bold text-gray-900">{breed.name}</h1>
+              
+              <div className="mt-4 space-y-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Temperamen</h2>
+                  <p className="mt-1 text-gray-600">{breed.temperament}</p>
+                </div>
+                
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Asal</h2>
+                  <p className="mt-1 text-gray-600">{breed.origin || 'Tidak diketahui'}</p>
+                </div>
+                
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Umur</h2>
+                  <p className="mt-1 text-gray-600">{breed.life_span}</p>
+                </div>
+                
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Berat</h2>
+                  <p className="mt-1 text-gray-600">
+                    {breed.weight?.metric} kg ({breed.weight?.imperial} lbs)
+                  </p>
+                </div>
+                
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Tinggi</h2>
+                  <p className="mt-1 text-gray-600">
+                    {breed.height?.metric} cm ({breed.height?.imperial} inches)
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <Link
+                  to="/breeds"
+                  className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-6 py-3 rounded-lg inline-block hover:opacity-90 transition duration-300"
+                >
+                  Kembali ke Daftar
+                </Link>
+              </div>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 };

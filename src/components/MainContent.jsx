@@ -60,8 +60,6 @@ const MainContent = () => {
       breed: "Golden Retriever",
       videoUrl: "https://www.tiktok.com/@certifiedfreedomlover/video/7483970811037240582",
       thumbnail: "/video-thumb-1.jpg",
-      author: "@goldenlovers",
-      likes: "1.2M"
     },
     {
       id: 2,
@@ -69,8 +67,6 @@ const MainContent = () => {
       breed: "Siberian Husky",
       videoUrl: "https://www.instagram.com/reel/C5tc72viPWV",
       thumbnail: "/video-thumb-2.jpg",
-      author: "@huskycute",
-      likes: "890K"
     },
     {
       id: 3,
@@ -78,8 +74,6 @@ const MainContent = () => {
       breed: "Pomeranian",
       videoUrl: "https://www.tiktok.com/embed/v2/7123456791",
       thumbnail: "/video-thumb-3.jpg",
-      author: "@pompomworld",
-      likes: "750K"
     }
   ];
 
