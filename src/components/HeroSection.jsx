@@ -19,7 +19,7 @@ const HeroSection = () => {
               </span>
             </h1>
             <p className="text-2xl sm:text-3xl md:text-4xl text-gray-700 font-light mb-8">
-              Dog is Our Bestfriend
+              Dogs are our best friends
             </p>
             <motion.button
               initial={{ y: 20, opacity: 0 }}

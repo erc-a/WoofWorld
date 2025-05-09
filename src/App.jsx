@@ -5,6 +5,7 @@ import MainContent from './components/MainContent';
 import DogBreedDetail from './components/DogBreedDetail';
 import './App.css';
 import WaveDivider from './components/WaveDivider';
+import Footer from './components/Footer';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           } />
           <Route path="/breeds/:id" element={<DogBreedDetail />} />
         </Routes>
+        <Footer />
       </div>
     </Router>
   );
