@@ -1,0 +1,17 @@
+name: woofworld
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - pyramid
+  - sqlalchemy
+  - psycopg2
+  - alembic
+  - pyramid_tm
+  - zope.sqlalchemy
+  - waitress
+  - jwt
+  - pip:
+    - pyramid-jwt
+    - bcrypt

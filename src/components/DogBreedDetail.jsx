@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const DogBreedDetail = () => {
   const { id } = useParams();
@@ -9,6 +10,8 @@ const DogBreedDetail = () => {
   const [loading, setLoading] = useState(true);
   const API_KEY = 'live_LjTiXLNveHjkoh664tkodk7f4L3A4pIPGVi8Bx0jUXvlpXI5bZiyzotUSHsOapxo';
   const { isFavorite, addToFavorites, removeFromFavorites } = useFavorites();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBreedDetail = async () => {
@@ -35,6 +38,10 @@ const DogBreedDetail = () => {
   }, [id]);
 
   const handleFavoriteClick = () => {
+    if (!user) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
     if (isFavorite(breed.id)) {
       removeFromFavorites(breed.id);
     } else {

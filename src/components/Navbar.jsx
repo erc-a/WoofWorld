@@ -37,12 +37,12 @@ const Navbar = () => {
           </div>
 
           {/* Right Side - Login Button */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center space-x-4">
             <Link 
               to="/login" 
-              className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition duration-300"
+              className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition duration-300"
             >
-              Login
+              Masuk
             </Link>
           </div>
 

@@ -1,21 +1,90 @@
-# dependencies
-node_modules/
+# === PYTHON (Pyramid) ===
+__pycache__/
+*.py[cod]
+*$py.class
 
-# build output
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# local environment files
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+.Python
+
+# Test and coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Environment variables
 .env
-.env.local
+.env.*
 
-# system files
-.DS_Store
-Thumbs.db
+# Logs
+*.log
 
-# logs
+# Pyramid configs
+development.ini
+production.ini
+
+# SQLite (if used)
+*.db
+*.sqlite3
+
+# === NODE (React + Vite) ===
+node_modules/
+dist/
+build/
+.vite/
+.svelte-kit/  # jika ada
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# editor folders
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS + Editor junk
+.DS_Store
+Thumbs.db
 .vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Optional
+*.tsbuildinfo
+coverage/
+.pnpm-store/
