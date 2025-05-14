@@ -1,5 +1,9 @@
 # 🐕 WoofWorld
 
+<div align="center">
+  <img src="public/woofworld-logo.png" alt="WoofWorld Logo" width="200"/>
+</div>
+
 WoofWorld adalah aplikasi web yang didedikasikan untuk pecinta anjing, menyediakan informasi lengkap tentang berbagai jenis anjing, fakta menarik tentang anjing, dan platform untuk menyimpan ras anjing favorit Anda.
 
 ## 📋 Fitur
