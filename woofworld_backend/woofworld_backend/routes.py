@@ -3,6 +3,7 @@ def includeme(config):
     config.add_route('register', '/api/register')
     config.add_route('login', '/api/login')
     config.add_route('verify_token', '/api/verify-token') # Untuk AuthContext.jsx
+    config.add_route('update_profile', '/api/user/profile', request_method='PUT', factory='woofworld_backend.security.AuthenticatedUserFactory')
 
     config.add_route('list_breeds', '/api/breeds')
     config.add_route('get_breed', '/api/breeds/{id}')

@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { user, logout } = useContext(AuthContext);
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <nav className="bg-white shadow-lg fixed w-full z-50">
@@ -36,14 +43,49 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Right Side - Login Button */}
+          {/* Right Side - Login Button or Profile */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link 
-              to="/login" 
-              className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition duration-300"
-            >
-              Masuk
-            </Link>
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-3 focus:outline-none"
+                >
+                  <img
+                    src={user.profilePicture || '/default-profile.png'}
+                    alt="Profile"
+                    className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+                  />
+                  <span className="text-gray-700">{user.name}</span>
+                </button>
+
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                    <div className="py-1">
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Edit Profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link 
+                to="/login" 
+                className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition duration-300"
+              >
+                Masuk
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -85,9 +127,23 @@ const Navbar = () => {
             <Link to="/favorites" className="block text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-base font-medium">
               Favorit
             </Link>
-            <Link to="/login" className="block bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-full text-base font-medium">
-              Login
-            </Link>
+            {user ? (
+              <>
+                <Link to="/profile" className="block text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-base font-medium">
+                  Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-base font-medium"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link to="/login" className="block bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-full text-base font-medium">
+                Login
+              </Link>
+            )}
           </div>
         </div>
       )}

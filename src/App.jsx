@@ -12,6 +12,7 @@ import Favorites from './pages/Favorites';
 import Facts from './pages/Facts';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './admin/layouts/AdminLayout';
@@ -50,6 +51,14 @@ function App() {
               <Route path="/facts" element={<Facts />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="users" element={<UserManagement />} />

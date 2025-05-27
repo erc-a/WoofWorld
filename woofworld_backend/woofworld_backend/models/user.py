@@ -22,6 +22,7 @@ class User(Base):
     name = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False, unique=True, index=True)
     password_hash = Column(Text, nullable=False)
+    profile_picture = Column(String(255))  # Add profile picture field
     role = Column(SAEnum(UserRole), nullable=False, default=UserRole.user)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -38,7 +39,8 @@ class User(Base):
             'id': self.id,
             'name': self.name,
             'role': self.role.value,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
+            'profile_picture': self.profile_picture
         }
         if include_email:
             data['email'] = self.email

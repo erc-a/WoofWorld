@@ -5,6 +5,9 @@ from ..models import User
 from ..models.user import UserRole
 from ..security import get_user, hash_password, check_password # Ambil dari security.py
 import logging
+import shutil
+import os
+import uuid
 
 log = logging.getLogger(__name__)
 
@@ -85,3 +88,68 @@ def verify_token_view(request):
     else:
         # Seharusnya tidak sampai sini jika permission bekerja, tapi sebagai fallback
         raise HTTPUnauthorized(json_body={'message': 'Token tidak valid atau sesi berakhir.'})
+
+@view_config(route_name='update_profile', request_method='PUT', renderer='json', permission='view_authenticated')
+def update_profile_view(request):
+    """
+    Endpoint untuk mengupdate profil pengguna.
+    """
+    try:
+        current_user = get_user(request)
+        if not current_user:
+            raise HTTPUnauthorized(json_body={'message': 'User tidak ditemukan.'})
+
+        # Get form data
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+
+        # Update user data
+        if name:
+            current_user.name = name
+        if email:
+            # Check if email is already taken by another user
+            existing_user = request.dbsession.query(User).filter(
+                User.email == email,
+                User.id != current_user.id
+            ).first()
+            if existing_user:
+                raise HTTPBadRequest(json_body={'message': 'Email sudah digunakan.'})
+            current_user.email = email
+
+        # Handle profile picture upload
+        profile_picture = request.POST.get('profile_picture')
+        if profile_picture and hasattr(profile_picture, 'file'):
+            # Get file extension
+            filename = profile_picture.filename
+            extension = filename.split('.')[-1].lower()
+            if extension not in ['jpg', 'jpeg', 'png']:
+                raise HTTPBadRequest(json_body={'message': 'Format gambar tidak didukung. Gunakan JPG atau PNG.'})
+
+            # Generate unique filename
+            new_filename = f"{uuid.uuid4()}.{extension}"
+            file_path = f"uploads/profiles/{new_filename}"
+
+            # Save file
+            upload_dir = os.path.join(request.registry.settings['upload_dir'], 'profiles')
+            os.makedirs(upload_dir, exist_ok=True)
+            full_path = os.path.join(upload_dir, new_filename)
+            
+            profile_picture.file.seek(0)
+            with open(full_path, 'wb') as output_file:
+                shutil.copyfileobj(profile_picture.file, output_file)
+
+            current_user.profile_picture = file_path
+
+        request.dbsession.add(current_user)
+        
+        return {
+            'message': 'Profil berhasil diperbarui.',
+            'user': current_user.to_dict()
+        }
+    except HTTPBadRequest as e:
+        request.response.status = e.status_int
+        return e.json_body
+    except Exception as e:
+        log.error(f"Update profile error: {e}", exc_info=True)
+        request.response.status_code = 500
+        return {'message': 'Terjadi kesalahan internal saat memperbarui profil.'}
