@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -8,14 +9,14 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    try {
-      const response = await fetch('http://localhost:6543/api/login', {
+    try {      const response = await fetch('http://localhost:6544/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -23,17 +24,19 @@ const Login = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Store the token in localStorage
-        localStorage.setItem('token', data.token);
-        // Redirect to home page
-        navigate('/');
+      const data = await response.json();      if (response.ok) {
+        // Login user with data from backend
+        login(data.user, data.token);
+        // Redirect based on user role
+        if (data.user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } else {
         setError(data.message || 'Login gagal');
-      }
-    } catch (err) {
+      }    } catch (error) {
+      console.error('Login error:', error);
       setError('Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setLoading(false);

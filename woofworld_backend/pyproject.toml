@@ -1,0 +1,51 @@
+# woofworld_backend/pyproject.toml
+
+[build-system]
+requires = ["setuptools>=64", "wheel"] # setuptools >= 64 direkomendasikan untuk PEP 660
+build-backend = "setuptools.build_meta"
+backend-path = ["."] # Opsional, defaultnya adalah "."
+
+[project]
+name = "woofworld_backend"
+version = "0.1"
+description = "WoofWorld Backend API"
+requires-python = ">=3.9"
+dependencies = [
+    "pyramid",
+    "pyramid_jinja2",
+    "pyramid_tm",
+    "SQLAlchemy",
+    "transaction",
+    "zope.sqlalchemy",
+    "waitress",
+    "alembic",
+    "psycopg2-binary",
+    "pyramid_jwt",
+    "passlib[bcrypt]",
+    "requests",
+    # Tambahkan 'pyramid-defaultcors' atau package CORS lain jika kamu memutuskan untuk menggunakannya lagi
+    # Jika menggunakan tweens manual, tidak perlu dependensi CORS di sini
+]
+
+[project.optional-dependencies]
+dev = [
+    "pyramid_debugtoolbar",
+    "pytest",
+    "pytest-cov",
+]
+
+[project.entry-points."paste.app_factory"]
+main = "woofworld_backend:main"
+
+[project.entry-points."console_scripts"]
+initialize_woofworld_db = "woofworld_backend.scripts.initializedb:main"
+
+# Jika setup.py kamu punya find_packages() atau include_package_data,
+# kamu mungkin perlu menambahkan konfigurasi setuptools di sini
+[tool.setuptools.packages.find]
+where = ["."] # atau direktori package utamamu jika bukan di root
+include = ["woofworld_backend*"] # Sesuaikan dengan nama package-mu
+exclude = ["tests*"] # Contoh
+
+[tool.setuptools]
+include-package-data = true

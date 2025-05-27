@@ -1,17 +1,21 @@
-name: woofworld
+name: ww  # Nama environment
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.8
+  - python=3.9   # Versi Python
   - pyramid
   - sqlalchemy
-  - psycopg2
+  - psycopg2-binary # Untuk PostgreSQL
   - alembic
   - pyramid_tm
   - zope.sqlalchemy
-  - waitress
-  - jwt
-  - pip:
-    - pyramid-jwt
-    - bcrypt
+  - waitress  
+  - passlib[bcrypt]
+  - requests
+  - pip
+  # pyramid_cors dihapus dari sini, akan diinstall via setup.py dengan pip
+  # Jika ada package lain yang diinstall via pip dan tidak ada di channel conda utama
+  # Kamu bisa tambahkan di bawah section pip seperti ini:
+  # - pip:
+  #   - package_lain_via_pip
