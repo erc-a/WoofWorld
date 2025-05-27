@@ -1,15 +1,13 @@
 # woofworld_backend/woofworld_backend/__init__.py
 
 from pyramid.config import Configurator
-# Pastikan security.py dan groupfinder sudah ada dan benar
 from pyramid.authorization import ACLAuthorizationPolicy
-from .security import groupfinder 
-
+from .security import groupfinder, RootFactory # <--- IMPORT RootFactory DI SINI
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    config = Configurator(settings=settings)
+    config = Configurator(settings=settings, root_factory=RootFactory) # <--- SET RootFactory DI SINI
 
     # Include pyramid_jwt for authentication
     config.include('pyramid_jwt')
@@ -21,22 +19,11 @@ def main(global_config, **settings):
         callback=groupfinder 
     )
 
-    config.set_authorization_policy(ACLAuthorizationPolicy())
+    config.set_authorization_policy(ACLAuthorizationPolicy()) # Pastikan ini sudah tidak dikomentari
     
-    # Include pyramid_tm
     config.include('pyramid_tm')
-
-    # HAPUS atau KOMENTARI baris ini:
-    # config.include('pyramid_defaultcors') 
-    # config.add_cors_preflight_handler() # Ini juga tidak diperlukan lagi jika pakai tween manual
-
-    # TAMBAHKAN baris ini untuk mengaktifkan tween CORS manual kita:
     config.include('.tweens') 
-
-    # Models and database setup
     config.include('.models')
-    
-    # Routes
     config.include('.routes')
 
     config.scan()

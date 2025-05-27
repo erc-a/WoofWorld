@@ -39,10 +39,9 @@ from pyramid.security import (
 
 class RootFactory:
     __acl__ = [
-        (Allow, Everyone, 'view'), # Permission untuk mengakses endpoint publik seperti facts
-        (Allow, Everyone, 'view_public'), # Untuk endpoint publik
-        (Allow, Authenticated, 'view_authenticated'), # Untuk user yg login
-        (Allow, 'role:admin', 'admin_access'), # Untuk admin
+        (Allow, Everyone, 'view_public'),  # Permission untuk mengakses endpoint publik seperti facts, breeds dll
+        (Allow, Authenticated, 'view_authenticated'),  # Untuk user yg login
+        (Allow, 'role:admin', 'admin_access'),  # Untuk admin
     ]
     def __init__(self, request):
         self.request = request
