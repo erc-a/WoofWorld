@@ -3,7 +3,7 @@ from pyramid.response import Response
 from sqlalchemy import desc
 from ..models.fact import Fact
 
-@view_config(route_name='list_facts', renderer='json')
+@view_config(route_name='list_facts', renderer='json', permission='view')
 def get_facts(request):
     try:
         # Get all facts from database

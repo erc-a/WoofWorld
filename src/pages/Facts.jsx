@@ -8,8 +8,7 @@ const Facts = () => {
 
   useEffect(() => {
     const fetchFacts = async () => {
-      try {
-        const response = await fetch('http://localhost:6543/api/facts');
+      try {        const response = await fetch('http://localhost:6544/api/facts');
         const result = await response.json();
         
         if (result.status === 'success') {
