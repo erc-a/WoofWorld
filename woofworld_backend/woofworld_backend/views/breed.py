@@ -6,22 +6,26 @@ import logging
 
 log = logging.getLogger(__name__)
 
-# Ambil API Key dari environment variable atau settings.ini
-# Sebaiknya simpan API Key di environment variable untuk keamanan
-THE_DOG_API_KEY = os.environ.get('THE_DOG_API_KEY', 'live_LjTiXLNveHjkoh664tkodk7f4L3A4pIPGVi8Bx0jUXvlpXI5bZiyzotUSHsOapxo') # Default dari frontend jika tidak ada di env
+THE_DOG_API_KEY = os.environ.get('THE_DOG_API_KEY', 'live_LjTiXLNveHjkoh664tkodk7f4L3A4pIPGVi8Bx0jUXvlpXI5bZiyzotUSHsOapxo')
 THE_DOG_API_BASE_URL = 'https://api.thedogapi.com/v1'
 
 def make_dog_api_request(endpoint, params=None):
     headers = {'x-api-key': THE_DOG_API_KEY}
     try:
-        response = requests.get(f"{THE_DOG_API_BASE_URL}/{endpoint}", headers=headers, params=params, timeout=10)
-        response.raise_for_status() # Akan raise exception untuk status code 4xx atau 5xx
+        log.info(f"Requesting TheDogAPI: {THE_DOG_API_BASE_URL}/{endpoint} with params: {params}")
+        response = requests.get(f"{THE_DOG_API_BASE_URL}/{endpoint}", headers=headers, params=params, timeout=15) # Timeout diperpanjang
+        response.raise_for_status() 
         return response.json()
     except requests.exceptions.HTTPError as http_err:
-        log.error(f"HTTP error occurred: {http_err} - {response.status_code} - {response.text}")
+        log.error(f"HTTP error occurred: {http_err} - Status: {response.status_code} - Response: {response.text}")
         if response.status_code == 404:
+            # Untuk search, 404 bisa berarti tidak ada hasil, bukan error server
+            if "search" in endpoint:
+                return [] # Kembalikan array kosong jika search tidak menemukan apa-apa
             raise HTTPNotFound(json_body={'message': f'Data tidak ditemukan dari TheDogAPI: {endpoint}'})
-        raise HTTPInternalServerError(json_body={'message': f'Error dari TheDogAPI: {response.status_code}'})
+        elif response.status_code == 400: # Bad request dari TheDogAPI
+             raise HTTPBadRequest(json_body={'message': f'Bad request ke TheDogAPI ({response.status_code}): {response.text}'})
+        raise HTTPInternalServerError(json_body={'message': f'Error dari TheDogAPI ({response.status_code}): {response.text}'})
     except requests.exceptions.RequestException as req_err:
         log.error(f"Request error occurred: {req_err}")
         raise HTTPInternalServerError(json_body={'message': 'Gagal menghubungi TheDogAPI.'})
@@ -30,24 +34,37 @@ def make_dog_api_request(endpoint, params=None):
 @view_config(route_name='list_breeds', request_method='GET', renderer='json', permission='view_public')
 def list_breeds_view(request):
     try:
-        page = request.params.get('page', '0') # TheDogAPI menggunakan 0-indexed page
-        limit = request.params.get('limit', '12')
+        page_str = request.params.get('page', '0') 
+        limit_str = request.params.get('limit', '12')
         search_query = request.params.get('q', None)
+
+        try:
+            page = int(page_str)
+            limit = int(limit_str)
+        except ValueError:
+            raise HTTPBadRequest(json_body={'message': 'Parameter page dan limit harus berupa angka.'})
 
         api_params = {'page': page, 'limit': limit}
         
-        # TheDogAPI endpoint untuk search berbeda
         if search_query:
             endpoint = 'breeds/search'
             api_params['q'] = search_query
+            # TheDogAPI untuk /breeds/search juga mendukung `limit` dan `page`
+            # jadi tidak perlu menghapusnya.
         else:
             endpoint = 'breeds'
             
         breeds_data = make_dog_api_request(endpoint, params=api_params)
-        # Frontend mungkin mengharapkan struktur tertentu, sesuaikan jika perlu
-        # Misalnya, jika frontend mengharapkan total count, kamu perlu cek header response TheDogAPI
-        # atau buat request tambahan ke /breeds saja untuk count.
-        return {'breeds': breeds_data} # Langsung return data dari API
+        
+        # Penting: TheDogAPI /breeds/search mengembalikan array langsung, 
+        # sedangkan /breeds mengembalikan array langsung.
+        # Frontend mengharapkan object dengan key 'breeds'.
+        # Jadi, kita bungkus hasilnya jika belum berupa object.
+        # Namun, dari kode frontend: `const newBreeds = data.breeds || data;`
+        # Ini berarti frontend bisa menangani jika `data` adalah array langsung atau `data.breeds` adalah array.
+        # Untuk konsistensi, backend akan selalu mengembalikan `{'breeds': hasil_dari_api}`
+        
+        return {'breeds': breeds_data} 
     except (HTTPNotFound, HTTPInternalServerError, HTTPBadRequest) as e:
         request.response.status = e.status_int
         return e.json_body
