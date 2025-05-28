@@ -8,7 +8,7 @@ def cors_tween_factory(handler, registry):
     Takes configuration from settings.ini.
     """
     # Get CORS configuration from settings
-    allowed_origins_setting = registry.settings.get('cors.allow_origin', '*')
+    allowed_origins_setting = registry.settings.get('cors.allow_origin', 'http://localhost:5173')
     allowed_origins = [origin.strip() for origin in allowed_origins_setting.split(',')]
     
     allowed_methods = [method.strip() for method in registry.settings.get(
@@ -18,10 +18,10 @@ def cors_tween_factory(handler, registry):
     
     allowed_headers = [header.strip() for header in registry.settings.get(
         'cors.allow_headers',
-        'Content-Type, Authorization, X-Requested-With, Origin, Accept'
+        'Content-Type, Authorization, X-Requested-With, Origin, Accept, Cache-Control, X-CSRF-Token'
     ).split(',')]
     
-    allow_credentials = registry.settings.get('cors.allow_credentials', 'true').lower() == 'true'
+    allow_credentials = True  # Always allow credentials for this app
     max_age = registry.settings.get('cors.max_age', '3600')
 
     def cors_tween(request):

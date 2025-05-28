@@ -3,7 +3,7 @@ def includeme(config):
     config.add_route('home', '/')
     config.add_route('register', '/api/register')
     config.add_route('login', '/api/login')
-    config.add_route('verify_token', '/api/verify-token')
+    config.add_route('verify_token', '/api/verify-token', factory='woofworld_backend.security.RootFactory')
     config.add_route('update_profile', '/api/user/profile', request_method='PUT', 
                      factory='woofworld_backend.security.AuthenticatedUserFactory')
 

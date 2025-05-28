@@ -16,24 +16,30 @@ export const AuthProvider = ({ children }) => {
     } else {
       setLoading(false);
     }
-  }, []);
-  const checkAuth = async (token) => {
+  }, []);  const checkAuth = async (token) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/verify-token`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
       });
       
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
       } else {
+        console.error('Token verification failed:', response.status);
         localStorage.removeItem('token');
+        setUser(null);
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('Auth check failed:', error.message);
       localStorage.removeItem('token');
+      setUser(null);
     } finally {
       setLoading(false);
     }

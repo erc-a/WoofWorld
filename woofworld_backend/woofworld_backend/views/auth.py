@@ -82,11 +82,13 @@ def verify_token_view(request):
     Endpoint untuk frontend memverifikasi token.
     Jika decorator permission 'view_authenticated' terpenuhi, berarti token valid.
     """
-    current_user = get_user(request) # Mengambil user berdasarkan token JWT
-    if current_user:
-        return current_user.to_dict()
-    else:
-        # Seharusnya tidak sampai sini jika permission bekerja, tapi sebagai fallback
+    try:
+        current_user = get_user(request) # Mengambil user berdasarkan token JWT
+        if current_user:
+            return current_user.to_dict()
+        raise HTTPUnauthorized(json_body={'message': 'Token tidak valid atau sesi berakhir.'})
+    except Exception as e:
+        log.error(f"Token verification failed: {e}", exc_info=True)
         raise HTTPUnauthorized(json_body={'message': 'Token tidak valid atau sesi berakhir.'})
 
 @view_config(route_name='update_profile', request_method='PUT', renderer='json', permission='view_authenticated')

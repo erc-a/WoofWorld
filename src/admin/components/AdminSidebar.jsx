@@ -2,14 +2,9 @@ import { Link, useLocation } from 'react-router-dom';
 
 const AdminSidebar = () => {
   const location = useLocation();
-  
-  const menuItems = [
-    { path: '/admin', label: 'Dashboard', icon: '📊' },
-    { path: '/admin/users', label: 'Users', icon: '👥' },
-    { path: '/admin/breeds', label: 'Dog Breeds', icon: '🐕' },
+    const menuItems = [
     { path: '/admin/facts', label: 'Dog Facts', icon: '📝' },
     { path: '/admin/videos', label: 'Viral Videos', icon: '🎥' },
-    { path: '/admin/analytics', label: 'Analytics', icon: '📈' },
   ];
 
   return (

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import MainContent from './components/MainContent';
@@ -16,12 +16,8 @@ import Profile from './pages/Profile';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './admin/layouts/AdminLayout';
-import Dashboard from './admin/pages/Dashboard';
-import UserManagement from './admin/pages/UserManagement';
-import BreedManagement from './admin/pages/BreedManagement';
 import FactManagement from './admin/pages/FactManagement';
 import VideoManagement from './admin/pages/VideoManagement';
-import Analytics from './admin/pages/Analytics';
 
 function App() {
   return (
@@ -58,14 +54,10 @@ function App() {
                     <Profile />
                   </ProtectedRoute>
                 } 
-              />
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="users" element={<UserManagement />} />
-                <Route path="breeds" element={<BreedManagement />} />
+              />              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Navigate to="/admin/facts" replace />} />
                 <Route path="facts" element={<FactManagement />} />
                 <Route path="videos" element={<VideoManagement />} />
-                <Route path="analytics" element={<Analytics />} />
               </Route>
             </Routes>
             <Footer />
