@@ -7,14 +7,23 @@ log = logging.getLogger(__name__)
 
 @view_config(route_name='admin_list_facts', request_method='GET', renderer='json', permission='manage_facts')
 def admin_list_facts_view(request):
+    """Get all facts for admin management"""
     try:
-        # TODO: Implementasi pagination jika daftar fakta sangat banyak
-        facts = request.dbsession.query(Fact).order_by(Fact.id.desc()).all()
-        return {'facts': [fact.to_dict() for fact in facts]}
+        facts_query = request.dbsession.query(Fact).order_by(Fact.id.desc())
+        facts = facts_query.all()
+        log.info(f"Admin retrieved {len(facts)} facts")
+        
+        return {
+            'status': 'success',
+            'facts': [fact.to_dict() for fact in facts]
+        }
     except Exception as e:
-        log.error(f"Error listing admin facts: {e}", exc_info=True)
+        log.error(f"Error retrieving admin facts: {e}", exc_info=True)
         request.response.status_code = 500
-        return {'message': 'Gagal mengambil daftar fakta.'}
+        return {
+            'status': 'error',
+            'message': 'Gagal mengambil daftar fakta.'
+        }
 
 @view_config(route_name='admin_add_fact', request_method='POST', renderer='json', permission='manage_facts')
 def admin_add_fact_view(request):
