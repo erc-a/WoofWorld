@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom'; // Import Link
+import TikTokPreview from './TikTokPreview'; // Import TikTokPreview component
+import InstagramPreview from './InstagramPreview';
 
 // Helper function untuk mengambil item acak
 const getRandomItems = (arr, n) => {
@@ -69,7 +71,7 @@ const MainContent = () => {
         const response = await fetch(`${API_BASE_URL}/videos`);
         const result = await response.json();
         if (result.status === 'success' && result.data && result.data.videos) {
-          setDogViralVideos(result.data.videos);
+          setDogViralVideos(result.data.videos.filter(video => video.isPublic));
         } else {
           console.error("Failed to fetch viral videos:", result.message);
           setDogViralVideos([]);
@@ -85,23 +87,6 @@ const MainContent = () => {
     fetchPopularBreeds();
     fetchFacts();
     fetchViralVideos();
-
-    // Script embed TikTok & Instagram (tidak berubah)
-    const tiktokScript = document.createElement('script');
-    tiktokScript.src = "https://www.tiktok.com/embed.js";
-    tiktokScript.async = true;
-    document.body.appendChild(tiktokScript);
-
-    const igScript = document.createElement('script');
-    igScript.src = "https://www.instagram.com/embed.js";
-    igScript.async = true;
-    document.body.appendChild(igScript);
-
-    return () => {
-      // Cleanup scripts jika komponen unmount (opsional, tapi baik)
-      document.body.removeChild(tiktokScript);
-      document.body.removeChild(igScript);
-    };
   }, []);
 
   // Update carousel otomatis untuk fakta
@@ -226,30 +211,38 @@ const MainContent = () => {
         </div>
       </section>
 
-      {/* Video Viral Section */}
+       {/* Video Viral Section */}
       <div className="bg-gray-100 py-12">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8 text-center">Trending Dog Videos</h2>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Viral Dog Videos</h2>
+            <p className="text-lg text-gray-600">Saksikan video-video anjing yang sedang viral</p>
+          </div>
+          
           {loadingVideos ? (
-            <div className="text-center">Loading videos...</div>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+              <p className="mt-4">Loading videos...</p>
+            </div>
           ) : dogViralVideos.length === 0 ? (
-            <div className="text-center text-gray-600">No viral videos available at the moment.</div>
+            <div className="text-center py-12">
+              <p className="text-xl text-gray-600">No viral videos available at the moment.</p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {dogViralVideos.map((video) => (
-                <div key={video.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
-                  <div className="aspect-video">
-                    <iframe
-                      src={video.videoUrl}
-                      className="w-full h-full"
-                      allowFullScreen
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    />
+                <div key={video.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div className="relative">
+                    {video.videoUrl.includes('instagram.com') ? (
+                      <InstagramPreview postUrl={video.videoUrl} />
+                    ) : (
+                      <TikTokPreview videoUrl={video.videoUrl} />
+                    )}
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-2">{video.title}</h3>
+                  <div className="p-6">
+                    <h3 className="font-semibold text-xl mb-2">{video.title}</h3>
                     {video.description && (
-                      <p className="text-gray-600 text-sm">{video.description}</p>
+                      <p className="text-gray-600 text-sm mb-4">{video.description}</p>
                     )}
                   </div>
                 </div>

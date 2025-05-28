@@ -1,28 +1,44 @@
 import React from 'react';
 
-const TikTokPreview = ({ videoUrl, title }) => {
-  const handleClick = () => {
-    window.open(videoUrl, '_blank', 'noopener,noreferrer');
+const TikTokPreview = ({ videoUrl }) => {
+  // Transform URL to correct embed format
+  const getEmbedUrl = (url) => {
+    try {
+      // If it's already an embed URL, return as is
+      if (url.includes('/embed/')) return url;
+      
+      // Handle normal TikTok URL with video ID
+      if (url.includes('/video/')) {
+        const videoId = url.split('/video/')[1]?.split('?')[0];
+        return `https://www.tiktok.com/embed/v2/${videoId}`;
+      }
+
+      // Handle profile URL
+      const username = url.match(/@([^?]+)/)?.[1];
+      if (username) {
+        return `https://www.tiktok.com/embed/@${username}`;
+      }
+
+      return url;
+    } catch (error) {
+      console.error('Error processing TikTok URL:', error);
+      return url;
+    }
   };
 
+  const embedUrl = getEmbedUrl(videoUrl);
+  console.log('Embed URL:', embedUrl); // For debugging
+
   return (
-    <div 
-      onClick={handleClick}
-      className="cursor-pointer relative overflow-hidden rounded-lg bg-gray-100 hover:bg-gray-200 transition-all"
-    >
-      <div className="aspect-[9/16] flex items-center justify-center p-4">
-        <div className="text-center">
-          <svg 
-            className="w-12 h-12 mx-auto text-gray-400 mb-2" 
-            fill="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.43v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 015.2-2.32V9.39a8.33 8.33 0 005.65 3.24V2h-.42z"/>
-          </svg>
-          <p className="text-sm font-medium text-gray-900 truncate max-w-[200px]">{title}</p>
-          <p className="text-xs text-gray-500 mt-1">Click to watch on TikTok</p>
-        </div>
-      </div>
+    <div className="aspect-[9/16] w-full">
+      <iframe
+        src={embedUrl}
+        className="w-full h-full"
+        allowFullScreen
+        frameBorder="0"
+        sandbox="allow-scripts allow-same-origin allow-popups"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      />
     </div>
   );
 };
