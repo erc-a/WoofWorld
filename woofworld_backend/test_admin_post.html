@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin POST Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 600px; }
+        button { padding: 10px 20px; margin: 10px 0; cursor: pointer; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; }
+        .result { margin: 20px 0; padding: 20px; background: #f5f5f5; border: 1px solid #ddd; }
+        .error { background: #ffebee; border-color: #f44336; }
+        .success { background: #e8f5e9; border-color: #4caf50; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Facts POST Test</h1>
+        
+        <div>
+            <h3>Step 1: Login</h3>
+            <button onclick="loginAdmin()">Login as Admin</button>
+            <div id="loginResult" class="result" style="display:none;"></div>
+        </div>
+        
+        <div>
+            <h3>Step 2: Add Fact</h3>
+            <textarea id="factContent" placeholder="Enter fact content here...">Test fact from HTML - Dogs can see some colors, not just black and white!</textarea>
+            <br>
+            <button onclick="addFact()">Add Fact</button>
+            <div id="addResult" class="result" style="display:none;"></div>
+        </div>
+        
+        <div>
+            <h3>Step 3: Check Facts</h3>
+            <button onclick="getFacts()">Get All Facts</button>
+            <div id="factsResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = null;
+
+        async function loginAdmin() {
+            const resultDiv = document.getElementById('loginResult');
+            try {
+                const response = await fetch('http://localhost:6544/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@woofworld.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>Login Success!</strong><br>
+                        User: ${data.user.name} (${data.user.role})<br>
+                        Token: ${authToken.substring(0, 50)}...
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Login Error:</strong> ${data.message || 'Unknown error'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Network Error:</strong> ${error.message}`;
+            }
+            resultDiv.style.display = 'block';
+        }
+
+        async function addFact() {
+            const resultDiv = document.getElementById('addResult');
+            const content = document.getElementById('factContent').value;
+            
+            if (!authToken) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '<strong>Error:</strong> Please login first!';
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            if (!content.trim()) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '<strong>Error:</strong> Please enter fact content!';
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                console.log('Sending POST request with token:', authToken.substring(0, 20) + '...');
+                console.log('Content:', content);
+
+                const response = await fetch('http://localhost:6544/api/admin/facts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        content: content
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok || response.status === 201) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>Fact Added Successfully!</strong><br>
+                        Status: ${data.status}<br>
+                        Message: ${data.message || data.data?.message || 'Success'}<br>
+                        Content: ${data.data?.content || content}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <strong>Add Fact Error (${response.status}):</strong><br>
+                        ${data.message || JSON.stringify(data)}
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Network Error:</strong> ${error.message}`;
+            }
+            resultDiv.style.display = 'block';
+        }
+
+        async function getFacts() {
+            const resultDiv = document.getElementById('factsResult');
+            try {
+                const response = await fetch('http://localhost:6544/api/facts');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const facts = data.data.facts;
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>Total Facts: ${facts.length}</strong><br>
+                        Latest fact: ${facts[0]?.content.substring(0, 100)}...
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Network Error:</strong> ${error.message}`;
+            }
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

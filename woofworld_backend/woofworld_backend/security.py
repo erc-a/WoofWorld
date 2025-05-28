@@ -23,6 +23,7 @@ def groupfinder(userid, request):
         user = request.dbsession.query(User).filter(User.id == int(userid_str)).first()
         
         if user:
+            log.info(f"groupfinder: User details - ID: {user.id}, Email: {user.email}, Role: {user.role}")
             groups = [f'role:{user.role.value}', Authenticated]  # Add Authenticated group
             log.info(f"groupfinder: User '{user.email}' (ID: {userid_str}) found. Groups: {groups}")
             return groups

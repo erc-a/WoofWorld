@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test CORS Fix</title>
+</head>
+<body>
+    <h1>Test Admin POST with CORS Fix</h1>
+    <button onclick="testAdminPost()">Test Admin POST</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAdminPost() {
+            const resultDiv = document.getElementById('result');
+            
+            try {                // First, login to get JWT token
+                console.log('Step 1: Logging in...');
+                const loginResponse = await fetch('http://localhost:6544/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@woofworld.com',
+                        password: 'admin123'
+                    })
+                });
+
+                if (!loginResponse.ok) {
+                    throw new Error(`Login failed: ${loginResponse.status}`);
+                }
+
+                const loginData = await loginResponse.json();
+                const token = loginData.token;
+                console.log('Login successful, token:', token);
+
+                // Now test the admin POST endpoint
+                console.log('Step 2: Testing admin POST...');
+                const factResponse = await fetch('http://localhost:6544/api/admin/facts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },                    body: JSON.stringify({
+                        content: 'CORS Test Fact - Dogs can learn over 150 words'
+                    })
+                });
+
+                console.log('Response status:', factResponse.status);
+                console.log('Response headers:', factResponse.headers);
+
+                if (!factResponse.ok) {
+                    const errorText = await factResponse.text();
+                    throw new Error(`Admin POST failed: ${factResponse.status} - ${errorText}`);
+                }
+
+                const factData = await factResponse.json();
+                console.log('Admin POST successful:', factData);
+                
+                resultDiv.innerHTML = `
+                    <h3>SUCCESS!</h3>
+                    <p>CORS is working correctly!</p>
+                    <p>New fact added: ${JSON.stringify(factData, null, 2)}</p>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <h3>ERROR:</h3>
+                    <p style="color: red;">${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

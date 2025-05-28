@@ -1,39 +1,37 @@
 from pyramid.config import Configurator
 from pyramid.authorization import ACLAuthorizationPolicy
-from .security import groupfinder, RootFactory # <--- IMPORT RootFactory DI SINI
+from .security import groupfinder, RootFactory
+import logging # Tambahkan ini
+log = logging.getLogger(__name__) # Tambahkan ini
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    config = Configurator(settings=settings, root_factory=RootFactory)    # Include pyramid_jwt BEFORE setting authentication policy
+    # Log nilai JWT settings yang penting
+    log.info("============================================================")
+    log.info(f"INISIASI APLIKASI: Nilai jwt.secret dari settings: '{settings.get('jwt.secret')}'")
+    log.info(f"INISIASI APLIKASI: Nilai jwt.algorithm dari settings: '{settings.get('jwt.algorithm', 'HS256')}'") # Default HS256 jika tidak ada
+    log.info(f"INISIASI APLIKASI: Nilai jwt.expiration dari settings: '{settings.get('jwt.expiration')}'")
+    log.info("============================================================")
+
+    config = Configurator(settings=settings, root_factory=RootFactory)
+
     config.include('pyramid_jwt')
-    
-    # Get JWT settings
-    jwt_secret = settings['jwt.secret']
-    jwt_algorithm = settings.get('jwt.algorithm', 'HS256')
-    jwt_expiration = int(settings.get('jwt.expiration', 3600))
-    jwt_auth_type = settings.get('jwt.auth_type', 'Bearer')
-    
-    # Configure JWT authentication with explicit settings
     config.set_jwt_authentication_policy(
-        jwt_secret,
-        auth_type=jwt_auth_type,
-        algorithm=jwt_algorithm,
-        callback=groupfinder,
-        json_encoder=None,
-        expiration=jwt_expiration
+                settings['jwt.secret'], # Pastikan ini menggunakan nilai yang benar-benar dari settings
+        auth_type=settings.get('jwt.auth_policy', 'Bearer'),
+        expiration=int(settings.get('jwt.expiration', 3600)), # Pastikan konversi int berhasil
+        algorithm=settings.get('jwt.algorithm', 'HS256'),
+        callback=groupfinder
     )
 
-    # Set authorization policy
     config.set_authorization_policy(ACLAuthorizationPolicy())
 
-    # Include other components
     config.include('pyramid_tm')
     config.include('.tweens')
     config.include('.models')
     config.include('.routes')
-    
-    # Scan all views
+
     config.scan('.views')
 
     return config.make_wsgi_app()

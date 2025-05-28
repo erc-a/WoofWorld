@@ -6,9 +6,11 @@ def cors_tween_factory(handler, registry):
     """
     Tween factory to handle CORS and Content Security Policy.
     Takes configuration from settings.ini.
-    """    # Get CORS configuration from settings
+    """
+    # Get CORS configuration from settings
     allowed_origins_setting = registry.settings.get('cors.allow_origin', 'http://localhost:5173')
     allowed_origins = [origin.strip() for origin in allowed_origins_setting.split(',')]
+    
     allowed_methods = [method.strip() for method in registry.settings.get(
         'cors.allow_methods', 
         'GET, POST, PUT, DELETE, OPTIONS'

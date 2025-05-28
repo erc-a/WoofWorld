@@ -54,7 +54,14 @@ function App() {
                     <Profile />
                   </ProtectedRoute>
                 } 
-              />              <Route path="/admin" element={<AdminLayout />}>
+              />              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
                 <Route index element={<Navigate to="/admin/facts" replace />} />
                 <Route path="facts" element={<FactManagement />} />
                 <Route path="videos" element={<VideoManagement />} />

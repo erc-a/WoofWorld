@@ -19,22 +19,43 @@ def admin_list_facts_view(request):
 @view_config(route_name='admin_add_fact', request_method='POST', renderer='json', permission='manage_facts')
 def admin_add_fact_view(request):
     try:
+        # Get and validate JSON data
         data = request.json_body
         content = data.get('content')
-        if not content:
-            raise HTTPBadRequest(json_body={'message': 'Field "content" dibutuhkan.'})
+        
+        if not content or not content.strip():
+            raise HTTPBadRequest(json_body={
+                'status': 'error', 
+                'message': 'Field "content" dibutuhkan dan tidak boleh kosong.'
+            })
 
+        content = content.strip()
+
+        # Create new fact - simple approach like the GET endpoint
         new_fact = Fact(content=content)
         request.dbsession.add(new_fact)
-        request.dbsession.flush()
-        return HTTPCreated(json_body=new_fact.to_dict())
+        
+        # Let pyramid_tm handle the transaction commit automatically
+        # Don't flush manually - just return success
+        request.response.status = 201
+        return {
+            'status': 'success',
+            'data': {
+                'content': content,
+                'message': 'Fakta berhasil ditambahkan.'
+            }
+        }
+
     except HTTPBadRequest as e:
         request.response.status = e.status_int
         return e.json_body
     except Exception as e:
         log.error(f"Error adding fact: {e}", exc_info=True)
         request.response.status_code = 500
-        return {'message': 'Gagal menambahkan fakta.'}
+        return {
+            'status': 'error',
+            'message': 'Gagal menambahkan fakta. Silakan coba lagi.'
+        }
 
 @view_config(route_name='admin_get_fact', request_method='GET', renderer='json', permission='manage_facts')
 def admin_get_fact_view(request):

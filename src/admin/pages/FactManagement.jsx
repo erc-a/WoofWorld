@@ -12,27 +12,34 @@ const FactManagement = () => {
   const [editingFact, setEditingFact] = useState(null); // Objek fact yang sedang diedit
   const [editContent, setEditContent] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+  const showSuccessMessage = (message) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(''), 5000); // Clear after 5 seconds
+  };
 
   const fetchFacts = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       if (!token) {
-        setError("Token tidak ditemukan. Silakan login ulang.");
-        setLoading(false);
-        return;
+        throw new Error("Token tidak ditemukan. Silakan login ulang.");
       }
       const response = await fetch(`${API_BASE_URL}/api/admin/facts`, {
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
         },
       });
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Gagal mengambil daftar fakta' }));
-        throw new Error(errorData.message);
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Gagal mengambil daftar fakta');
       }
+
       const data = await response.json();
       setFacts(Array.isArray(data.facts) ? data.facts : []); // Pastikan data.facts adalah array
     } catch (err) {
@@ -45,33 +52,60 @@ const FactManagement = () => {
   }, [token, API_BASE_URL]);
 
   useEffect(() => {
+    if (!token) {
+      setError('Autentikasi dibutuhkan. Silakan login ulang.');
+      setLoading(false);
+      return;
+    }
     fetchFacts();
-  }, [fetchFacts]);
+  }, [fetchFacts, token]);
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
-    if (!newFactContent.trim()) {
+    const content = newFactContent.trim();
+    if (!content) {
       setError('Konten fakta tidak boleh kosong.');
       return;
     }
+
+    if (!token) {
+      setError('Autentikasi dibutuhkan. Silakan login ulang.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/admin/facts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: newFactContent }),
+        body: JSON.stringify({ content }),
+        credentials: 'include',
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Gagal menambahkan fakta' }));
-        throw new Error(errorData.message);
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.status === 'success' && data.data) {
+          setFacts(prevFacts => {
+            const newFacts = [data.data, ...prevFacts];
+            return newFacts.sort((a, b) => b.id - a.id);
+          });
+          showSuccessMessage(data.message || 'Fakta berhasil ditambahkan');
+          setNewFactContent('');
+        }
+      } else {
+        let errorMessage = data.message || 'Gagal menambahkan fakta';
+        if (response.status === 403) {
+          errorMessage = 'Anda tidak memiliki akses untuk menambahkan fakta. Silakan login sebagai admin.';
+        }
+        throw new Error(errorMessage);
       }
-      const addedFact = await response.json();
-      setFacts(prevFacts => [addedFact, ...prevFacts.sort((a, b) => b.id - a.id)]); // Tambah di awal dan sort by ID desc
-      setNewFactContent('');
     } catch (err) {
       console.error('Error adding fact:', err);
       setError(err.message || 'Gagal menambahkan fakta. Silakan coba lagi.');
@@ -165,6 +199,13 @@ const FactManagement = () => {
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md shadow-md" role="alert">
           <p className="font-bold">Error</p>
           <p>{error}</p>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-md" role="alert">
+          <p className="font-bold">Success</p>
+          <p>{successMessage}</p>
         </div>
       )}
 

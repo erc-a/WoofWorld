@@ -59,42 +59,39 @@ def login_view(request):
 
         user = request.dbsession.query(User).filter_by(email=email).first()
 
-        if user and user.check_password(password):            # Create JWT token with explicit settings
+        if user and user.check_password(password):
             settings = request.registry.settings
             jwt_secret = settings['jwt.secret']
             jwt_algorithm = settings.get('jwt.algorithm', 'HS256')
             jwt_expiration = int(settings.get('jwt.expiration', 3600))
 
-            log.info(f"LOGIN_VIEW: Creating token for user ID: {user.id}")
-            log.info(f"LOGIN_VIEW: Using algorithm: {jwt_algorithm}")
-
-            # Create token with explicit claims
+            log.info(f"LOGIN_VIEW: Creating token for user ID: {user.id}, Role: {user.role}")
+            log.info(f"LOGIN_VIEW: Using algorithm: {jwt_algorithm}")            # Create token with explicit claims
+            claims = {
+                'sub': str(user.id),
+                'email': user.email,
+                'role': user.role.value,
+                'groups': [f'role:{user.role.value}', 'Authenticated']
+            }
             token = request.create_jwt_token(
                 str(user.id),
                 expiration=jwt_expiration,
-                algorithm=jwt_algorithm
+                algorithm=jwt_algorithm,
+                **claims
             )
             
             log.info(f"LOGIN_VIEW: Token created successfully")
 
-            # --- Tes Decode Manual Langsung Setelah Pembuatan ---
+            # Test decode token immediately
             try:
                 decoded_payload_manual = jwt.decode(
                     token,
-                    actual_secret_for_creation,
-                    algorithms=[actual_algorithm_for_creation]
+                    jwt_secret,
+                    algorithms=[jwt_algorithm]
                 )
-                log.info(f"LOGIN_VIEW: Decode manual token BARU SUKSES. Payload: {decoded_payload_manual}")
-                if str(decoded_payload_manual.get('sub')) != str(user.id):
-                    log.error(f"LOGIN_VIEW: PERINGATAN! 'sub' di token ({decoded_payload_manual.get('sub')}) tidak cocok dengan user.id ({user.id}) setelah decode manual.")
-
-            except jwt.ExpiredSignatureError:
-                log.error("LOGIN_VIEW: Decode manual token BARU GAGAL - Token expired (Seharusnya tidak terjadi untuk token baru)")
-            except jwt.InvalidSignatureError:
-                log.error("LOGIN_VIEW: Decode manual token BARU GAGAL - INVALID SIGNATURE! (Ini masalah besar jika terjadi di sini!)")
+                log.info(f"LOGIN_VIEW: Token decode test successful. Claims: {decoded_payload_manual}")
             except Exception as e:
-                log.error(f"LOGIN_VIEW: Decode manual token BARU GAGAL - Error lain: {e}", exc_info=True)
-            # --- Akhir Tes Decode Manual ---
+                log.error(f"LOGIN_VIEW: Token decode test failed: {e}")
 
             return {
                 'message': 'Login berhasil.',
