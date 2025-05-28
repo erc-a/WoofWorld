@@ -1,4 +1,3 @@
-# erc-a/woofworld/WoofWorld-46516bd97b163a994cb5c73436f5fdf7c08b91ad/woofworld_backend/woofworld_backend/views/admin/videos.py
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPOk, HTTPBadRequest
 from woofworld_backend.models import Video
@@ -13,8 +12,13 @@ def list_videos_view(request):
         videos_query = request.dbsession.query(Video).filter(Video.is_public == True).order_by(Video.created_at.desc())
         videos = videos_query.all()
         log.info(f"Ditemukan {len(videos)} video publik.")
-        return {'videos': [video.to_dict() for video in videos]}
+        # Mengubah format respons agar sesuai dengan ekspektasi frontend
+        return {
+            'status': 'success',
+            'data': {'videos': [video.to_dict() for video in videos]}
+        }
     except Exception as e:
         log.error(f"Error saat mengambil daftar video: {e}", exc_info=True)
         request.response.status_code = 500
-        return {'message': 'Gagal mengambil daftar video.'}
+        # Respons error tetap sama, frontend akan menangani jika status bukan 2xx
+        return {'status': 'error', 'message': 'Gagal mengambil daftar video.'}
