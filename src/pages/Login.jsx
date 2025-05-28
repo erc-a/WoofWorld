@@ -100,8 +100,8 @@ const Login = () => {
                   Ingat saya
                 </label>
               </div>
-              <a href="#" className="text-sm text-blue-600 hover:underline">
-                Lupa password?
+              <a href="/change-password" className="text-sm text-blue-600 hover:underline">
+                Ubah Password
               </a>
             </div>
 

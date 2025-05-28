@@ -18,6 +18,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './admin/layouts/AdminLayout';
 import FactManagement from './admin/pages/FactManagement';
 import VideoManagement from './admin/pages/VideoManagement';
+import ForgotPassword from './pages/ForgotPassword';
+import ChangePassword from './pages/ChangePassword';
 
 function App() {
   return (
@@ -47,6 +49,8 @@ function App() {
               <Route path="/facts" element={<Facts />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/change-password" element={<ChangePassword />} />
               <Route 
                 path="/profile" 
                 element={
@@ -76,3 +80,4 @@ function App() {
 }
 
 export default App;
+
