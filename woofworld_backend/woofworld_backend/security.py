@@ -39,27 +39,35 @@ from pyramid.security import (
 
 class RootFactory:
     __acl__ = [
-        (Allow, Everyone, 'view_public'),  # Permission untuk mengakses endpoint publik seperti facts, breeds dll
-        (Allow, Authenticated, 'view_authenticated'),  # Untuk user yg login
-        (Allow, 'role:admin', 'admin_access'),  # Untuk admin
+        (Allow, Everyone, 'view_public'),  # Permission for public endpoints like facts, breeds etc
+        (Allow, Authenticated, 'view_authenticated'),  # For logged in users
     ]
     def __init__(self, request):
         self.request = request
 
 class AuthenticatedUserFactory(RootFactory):
-     # User yang sudah login boleh akses
+    """Factory for authenticated user routes"""
     __acl__ = [
-        (Allow, Authenticated, 'access_favorites'),
-        (Allow, 'role:admin', 'admin_access'), # Admin juga boleh
+        (Allow, Authenticated, [
+            'view_authenticated',
+            'manage_profile',
+            'manage_favorites',
+            'access_favorites'
+        ])
     ]
 
 class AdminFactory(RootFactory):
-    # Hanya admin yang boleh akses
+    """Factory for admin routes"""
     __acl__ = [
-        (Allow, 'role:admin', 'admin_dashboard'),
-        (Allow, 'role:admin', 'manage_users'),
-        (Allow, 'role:admin', 'manage_breeds'),
-        (Allow, 'role:admin', 'manage_facts'),
-        (Allow, 'role:admin', 'manage_videos'),
-        (Allow, 'role:admin', 'view_analytics'),
+        (Allow, 'role:admin', [
+            'admin_access',
+            'admin_dashboard',
+            'manage_users',
+            'manage_breeds',
+            'manage_facts',
+            'manage_videos',
+            'view_analytics',
+            'manage_stats',
+            'manage_analytics'
+        ])
     ]

@@ -7,10 +7,9 @@ const UserManagement = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
-
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:6543/api/admin/users');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users`);
       const data = await response.json();
       setUsers(data);
       setLoading(false);
@@ -24,7 +23,7 @@ const UserManagement = () => {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      await fetch(`http://localhost:6543/api/admin/users/${userId}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users/${userId}`, {
         method: 'DELETE'
       });
       fetchUsers();

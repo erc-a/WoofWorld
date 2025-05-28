@@ -1,3 +1,5 @@
+# Modul ini tidak lagi digunakan karena breeds data diambil dari TheDogAPI
+"""
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPOk, HTTPBadRequest, HTTPCreated
 import logging
@@ -113,8 +115,8 @@ def admin_delete_breed_view(request):
         raise HTTPBadRequest(json_body={'message': 'ID ras tidak valid.'})
     except HTTPNotFound as e:
         request.response.status = e.status_int
-        return e.json_body
-    except Exception as e:
+        return e.json_body    except Exception as e:
         log.error(f"Error deleting breed {request.matchdict.get('id')}: {e}", exc_info=True)
         request.response.status_code = 500
         return {'message': 'Gagal menghapus ras anjing.'}
+"""

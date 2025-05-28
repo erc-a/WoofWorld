@@ -28,7 +28,7 @@ const Analytics = () => {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await fetch('http://localhost:6543/api/admin/analytics');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/analytics`);
       const analyticsData = await response.json();
       setData(analyticsData);
     } catch (error) {

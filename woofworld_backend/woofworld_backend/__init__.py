@@ -25,6 +25,11 @@ def main(global_config, **settings):
     config.include('.tweens') 
     config.include('.models')
     config.include('.routes')
-
-    config.scan()
+    
+    # Scan all views at once
+    config.scan('.views')  
+    
     return config.make_wsgi_app()
+
+def includeme(config):
+    config.add_static_view('static', 'static', cache_max_age=3600)

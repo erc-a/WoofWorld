@@ -3,23 +3,20 @@ import { useState, useEffect } from 'react';
 const BreedManagement = () => {
   const [breeds, setBreeds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({
-    name: '',
-    breed_group: '',
-    temperament: '',
-    origin: '',
-    life_span: '',
-    weight_metric: '',
-    height_metric: '',
-  });
-
-  useEffect(() => {
-    fetchBreeds();
-  }, []);
+  const [searchQuery, setSearchQuery] = useState('');
+  const API_KEY = 'live_LjTiXLNveHjkoh664tkodk7f4L3A4pIPGVi8Bx0jUXvlpXI5bZiyzotUSHsOapxo';
 
   const fetchBreeds = async () => {
     try {
-      const response = await fetch('http://localhost:6543/api/admin/breeds');
+      const endpoint = searchQuery
+        ? `https://api.thedogapi.com/v1/breeds/search?q=${searchQuery}`
+        : 'https://api.thedogapi.com/v1/breeds';
+        
+      const response = await fetch(endpoint, {
+        headers: {
+          'x-api-key': API_KEY
+        }
+      });
       const data = await response.json();
       setBreeds(data);
       setLoading(false);
@@ -29,83 +26,70 @@ const BreedManagement = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:6543/api/admin/breeds', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        fetchBreeds();
-        setFormData({
-          name: '',
-          breed_group: '',
-          temperament: '',
-          origin: '',
-          life_span: '',
-          weight_metric: '',
-          height_metric: '',
-        });
-      }
-    } catch (error) {
-      console.error('Error adding breed:', error);
-    }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchBreeds();
+    }, 300); // Debounce search
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Breed Management</h1>
+    <div className="space-y-6 p-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Breed Management</h1>
+        <div className="text-sm text-gray-600">
+          * Data from TheDogAPI
+        </div>
+      </div>
       
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Add New Breed</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Form fields */}
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Add Breed
-          </button>
-        </form>
-      </div>
+        <div className="flex gap-4">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearch}
+            placeholder="Search breeds..."
+            className="flex-1 px-4 py-2 border rounded-lg"
+          />
+        </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Group
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+        <div className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {breeds.map((breed) => (
-              <tr key={breed.id} className="border-t border-gray-200">
-                <td className="px-6 py-4">{breed.name}</td>
-                <td className="px-6 py-4">{breed.breed_group}</td>
-                <td className="px-6 py-4">
-                  <button className="text-red-600 hover:text-red-900">
-                    Delete
-                  </button>
-                </td>
-              </tr>
+              <div key={breed.id} className="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-gray-900">{breed.name}</h3>
+                  <p className="text-sm text-gray-600 mt-1">{breed.breed_group || 'No group specified'}</p>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-sm">
+                      <span className="font-medium">Temperament:</span> {breed.temperament || 'Not specified'}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Life Span:</span> {breed.life_span || 'Not specified'}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Origin:</span> {breed.origin || 'Not specified'}
+                    </p>
+                  </div>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
       </div>
     </div>
   );

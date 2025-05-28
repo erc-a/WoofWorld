@@ -1,21 +1,23 @@
-name: ww  # Nama environment
+name: ww_fresh # Atau nama environment yang kamu inginkan
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.9   # Versi Python
+  - python=3.9
+  - pip
+  - setuptools   # <--- TAMBAHKAN INI
+  - wheel        # <--- TAMBAHKAN INI
   - pyramid
   - sqlalchemy
-  - psycopg2-binary # Untuk PostgreSQL
+  - psycopg2-binary
   - alembic
   - pyramid_tm
   - zope.sqlalchemy
   - waitress  
   - passlib[bcrypt]
   - requests
-  - pip
-  # pyramid_cors dihapus dari sini, akan diinstall via setup.py dengan pip
-  # Jika ada package lain yang diinstall via pip dan tidak ada di channel conda utama
-  # Kamu bisa tambahkan di bawah section pip seperti ini:
-  # - pip:
-  #   - package_lain_via_pip
+  # Jika ada paket lain dari setup.py/pyproject.toml yang ingin kamu kelola via Conda,
+  # bisa ditambahkan di sini. Sisanya akan diurus pip.
+
+
+

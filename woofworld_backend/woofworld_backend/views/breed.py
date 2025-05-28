@@ -107,3 +107,51 @@ def get_breed_view(request):
         log.error(f"Unexpected error in get_breed_view for id {request.matchdict.get('id')}: {e}", exc_info=True)
         request.response.status_code = 500
         return {'message': 'Terjadi kesalahan tak terduga.'}
+
+# @view_config(route_name='popular_breeds', request_method='GET', renderer='json', permission='view_public')
+# def popular_breeds_view(request):
+#     try:
+#         # Get all breeds and sort by popularity/weight/height
+#         breeds_data = make_dog_api_request('breeds')
+        
+#         # Sort by weight as a simple popularity metric
+#         # You could implement a more sophisticated popularity algorithm
+#         sorted_breeds = sorted(
+#             breeds_data,
+#             key=lambda x: int(x.get('weight', {}).get('metric', '0').split('-')[0] or '0'),
+#             reverse=True
+#         )
+        
+#         # Return top 10 breeds
+#         return {'breeds': sorted_breeds[:10]}
+        
+#     except Exception as e:
+#         log.error(f"Error in popular_breeds_view: {e}", exc_info=True)
+#         request.response.status = 500
+#         return {'message': 'Terjadi kesalahan saat mengambil ras populer.'}
+
+# @view_config(route_name='videos', request_method='GET', renderer='json', permission='view_public')
+# def videos_view(request):
+#     try:
+#         # Since TheDogAPI doesn't have videos endpoint,
+#         # returning mock data or you could integrate with YouTube API
+#         videos = [
+#             {
+#                 'id': 1,
+#                 'title': 'Pelatihan Dasar Anjing',
+#                 'url': 'https://www.youtube.com/watch?v=example1',
+#                 'thumbnail': 'https://example.com/thumbnail1.jpg'
+#             },
+#             {
+#                 'id': 2, 
+#                 'title': 'Tips Merawat Anjing',
+#                 'url': 'https://www.youtube.com/watch?v=example2',
+#                 'thumbnail': 'https://example.com/thumbnail2.jpg'
+#             }
+#         ]
+#         return {'videos': videos}
+        
+#     except Exception as e:
+#         log.error(f"Error in videos_view: {e}", exc_info=True)
+#         request.response.status = 500
+#         return {'message': 'Terjadi kesalahan saat mengambil video.'}

@@ -1,7 +1,6 @@
-import { useContext, useState, useEffect } from 'react';
-import { createAuthContext } from './createAuthContext';
+import { createContext, useContext, useState, useEffect } from 'react';
 
-export const { AuthContext } = createAuthContext();
+export const AuthContext = createContext(null);
 
 
 export const AuthProvider = ({ children }) => {
@@ -18,10 +17,9 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
-
   const checkAuth = async (token) => {
     try {
-      const response = await fetch('http://localhost:6543/api/verify-token', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/verify-token`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

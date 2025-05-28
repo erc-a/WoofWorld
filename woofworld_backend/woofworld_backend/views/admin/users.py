@@ -43,7 +43,33 @@ def admin_delete_user_view(request):
         request.response.status_code = 500
         return {'message': 'Gagal menghapus pengguna.'}
 
-# Kamu bisa tambahkan view untuk update role user jika diperlukan
-# @view_config(route_name='admin_update_user_role', request_method='PUT', renderer='json', permission='manage_users')
-# def admin_update_user_role_view(request):
-#     # ... implementasi ...
+@view_config(route_name='make_admin', request_method='POST', renderer='json', permission='manage_users')
+def make_admin_view(request):
+    try:
+        user_id = request.json_body.get('user_id')
+        if not user_id:
+            raise HTTPBadRequest(json_body={'message': 'User ID dibutuhkan.'})
+
+        user = request.dbsession.query(User).get(user_id)
+        if not user:
+            raise HTTPNotFound(json_body={'message': 'User tidak ditemukan.'})
+
+        # Pastikan tidak mengubah role admin lain
+        current_admin = get_user(request)
+        if user.id == current_admin.id:
+            raise HTTPBadRequest(json_body={'message': 'Tidak dapat mengubah role diri sendiri.'})
+
+        user.role = UserRole.ADMIN
+        request.dbsession.flush()
+
+        return {
+            'message': f'User {user.email} berhasil dijadikan admin.',
+            'user': user.to_dict(include_email=True)
+        }
+    except (HTTPBadRequest, HTTPNotFound) as e:
+        request.response.status = e.status_int
+        return e.json_body
+    except Exception as e:
+        log.error(f"Error making user admin: {e}", exc_info=True)
+        request.response.status_code = 500
+        return {'message': 'Gagal menjadikan user sebagai admin.'}

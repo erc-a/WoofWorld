@@ -11,14 +11,14 @@ def admin_stats_view(request):
         dbsession = request.dbsession
         stats = {
             'totalUsers': dbsession.query(func.count(User.id)).scalar(),
-            'totalBreeds': dbsession.query(func.count(DogBreed.id)).scalar(),
             'totalFacts': dbsession.query(func.count(Fact.id)).scalar(),
             'totalVideos': dbsession.query(func.count(Video.id)).scalar(),
             # Dummy data untuk recentActivities dan userGrowth, sesuaikan dengan logic sebenarnya
+            'recentActivities': list[dict[str, str | int]],
             'recentActivities': [
-                {'id': 1, 'icon': '🐾', 'description': 'User baru mendaftar: John Doe', 'timestamp': '2023-05-27T10:00:00Z'},
-                {'id': 2, 'icon': '🦴', 'description': 'Breed baru ditambahkan: Labrador', 'timestamp': '2023-05-27T09:30:00Z'}
+                {'id': 1, 'icon': '🐾', 'description': 'User baru mendaftar: John Doe', 'timestamp': '2023-05-27T10:00:00Z'}
             ],
+            'userGrowth': list[dict[str, str | int]],
             'userGrowth': [
                 {'date': '2023-05-01', 'users': 10},
                 {'date': '2023-05-15', 'users': 25},
