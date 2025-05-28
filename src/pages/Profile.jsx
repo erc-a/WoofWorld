@@ -1,14 +1,30 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Profile = () => {
-  const { user, updateUser } = useContext(AuthContext);
+  const { user, login: updateUserContext, loading: authLoading, token } = useContext(AuthContext); // Ganti nama login ke updateUserContext biar lebih jelas
+  const navigate = useNavigate(); // Hook untuk navigasi
+
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    profilePicture: null
+    name: '',
+    email: ''
   });
-  const [previewUrl, setPreviewUrl] = useState(user?.profilePicture || '');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || ''
+      });
+    } else if (!authLoading && !user) {
+      // Jika user tidak ada setelah loading selesai, redirect ke login
+      navigate('/login');
+    }
+  }, [user, authLoading, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -18,100 +34,106 @@ const Profile = () => {
     }));
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData(prev => ({
-        ...prev,
-        profilePicture: file
-      }));
-      setPreviewUrl(URL.createObjectURL(file));
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formDataToSend = new FormData();
-    formDataToSend.append('name', formData.name);
-    formDataToSend.append('email', formData.email);
-    if (formData.profilePicture) {
-      formDataToSend.append('profile_picture', formData.profilePicture);
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    if (!formData.name || !formData.email) {
+      setError("Nama dan email tidak boleh kosong.");
+      setLoading(false);
+      return;
     }
 
     try {
-      const response = await fetch('/api/user/profile', {
+      // Pastikan VITE_API_URL sudah benar di .env
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/profile`, {
         method: 'PUT',
-        body: formDataToSend,
-        credentials: 'include'
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Kirim token untuk autentikasi
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email
+        })
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const updatedUser = await response.json();
-        updateUser(updatedUser);
-        alert('Profile updated successfully!');
+        updateUserContext(data.user, token); // Update context dengan user baru
+        setSuccess('Profil berhasil diperbarui!');
       } else {
-        alert('Failed to update profile');
+        setError(data.message || 'Gagal memperbarui profil.');
       }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('Error updating profile');
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError('Terjadi kesalahan saat memperbarui profil.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (authLoading || (!user && !authLoading)) {
+    return (
+      <div className="flex justify-center items-center min-h-[calc(100vh-100px)]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex flex-col items-center mb-6">
-          <div className="w-32 h-32 rounded-full overflow-hidden mb-4">
-            <img
-              src={previewUrl || '/default-profile.png'}
-              alt="Profile"
-              className="w-full h-full object-cover"
+    <div className="pt-28 pb-12 min-h-screen bg-gradient-to-b from-white to-blue-50">
+      <div className="max-w-lg mx-auto p-8 bg-white rounded-xl shadow-2xl">
+        <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Edit Profil</h2>
+
+        {error && <div className="mb-4 p-3 text-sm text-red-700 bg-red-100 rounded-lg shadow-sm">{error}</div>}
+        {success && <div className="mb-4 p-3 text-sm text-green-700 bg-green-100 rounded-lg shadow-sm">{success}</div>}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-28 h-28 rounded-full bg-blue-500 flex items-center justify-center text-white text-5xl font-semibold mb-4 shadow-md">
+              {user?.name?.[0]?.toUpperCase() || '?'}
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+            <input
+              type="text"
+              name="name"
+              id="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              required
             />
           </div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="block w-full text-sm text-gray-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-full file:border-0
-              file:text-sm file:font-semibold
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100"
-          />
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Name</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              required
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Email</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Save Changes
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-3 px-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70"
+          >
+            {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

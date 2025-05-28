@@ -1,17 +1,41 @@
-from .models.user import User
+import logging
+log = logging.getLogger(__name__) # Atau logger spesifik modul
 
-# Fungsi callback untuk pyramid_jwt
+from pyramid.security import (
+    Allow,
+    Everyone,
+    Authenticated,
+    principals_allowed_by_permission,
+)
+
+from .models.user import User # Pastikan User diimpor
+
 def groupfinder(userid, request):
-    """
-    Dipanggil oleh pyramid_jwt untuk mendapatkan principals (groups) untuk user_id.
-    user_id di sini adalah payload dari JWT, yang biasanya berisi 'sub' atau 'user_id'.
-    """
-    # Asumsi payload JWT memiliki key 'sub' yang berisi user.id
-    user = request.dbsession.query(User).filter(User.id == userid).first()
-    if user:
-        groups = [f'role:{user.role.value}']
-        return groups
-    return None
+    log.info(f"groupfinder: Received userid = '{userid}' (type: {type(userid)})")
+    
+    if userid is None:
+        log.warning("groupfinder: Received None userid")
+        return None
+
+    try:
+        # Ensure userid is string since that's what we're storing in JWT
+        userid_str = str(userid)
+        user = request.dbsession.query(User).filter(User.id == int(userid_str)).first()
+        
+        if user:
+            groups = [f'role:{user.role.value}', Authenticated]  # Add Authenticated group
+            log.info(f"groupfinder: User '{user.email}' (ID: {userid_str}) found. Groups: {groups}")
+            return groups
+        else:
+            log.warning(f"groupfinder: No user found with id '{userid_str}'")
+            return None
+            
+    except (ValueError, TypeError) as e:
+        log.error(f"groupfinder: Failed to process userid '{userid}': {e}")
+        return None
+    except Exception as e:
+        log.error(f"groupfinder: Unexpected error: {e}", exc_info=True)
+        return None
 
 # Fungsi helper untuk views
 def get_user(request):
@@ -30,24 +54,19 @@ def check_password(hashed_password, password):
     from passlib.hash import bcrypt
     return bcrypt.verify(password, hashed_password)
 
-from pyramid.security import (
-    Allow,
-    Everyone,
-    Authenticated,
-    principals_allowed_by_permission,
-)
-
 class RootFactory:
     __acl__ = [
-        (Allow, Everyone, 'view_public'),  # Permission for public endpoints like facts, breeds etc
-        (Allow, Authenticated, 'view_authenticated'),  # For logged in users
+        (Allow, Everyone, 'view_public'),  # For public endpoints like facts, breeds etc
+        (Allow, Authenticated, ['view_authenticated', 'view_profile']),  # Basic authenticated user permissions
     ]
+
     def __init__(self, request):
         self.request = request
 
 class AuthenticatedUserFactory(RootFactory):
     """Factory for authenticated user routes"""
     __acl__ = [
+        (Allow, Everyone, 'view_public'),  # Inherit public permissions
         (Allow, Authenticated, [
             'view_authenticated',
             'manage_profile',

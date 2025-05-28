@@ -1,9 +1,13 @@
+from pyramid.view import view_config
+from pyramid.response import Response
+import json
+
 def includeme(config):
     # Public Routes
     config.add_route('home', '/')
     config.add_route('register', '/api/register')
     config.add_route('login', '/api/login')
-    config.add_route('verify_token', '/api/verify-token', factory='woofworld_backend.security.RootFactory')
+    config.add_route('verify_token', '/api/verify-token', factory='woofworld_backend.security.AuthenticatedUserFactory')
     config.add_route('update_profile', '/api/user/profile', request_method='PUT', 
                      factory='woofworld_backend.security.AuthenticatedUserFactory')
 
