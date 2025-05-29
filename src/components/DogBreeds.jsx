@@ -1,4 +1,3 @@
-// src/components/DogBreeds.jsx
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';

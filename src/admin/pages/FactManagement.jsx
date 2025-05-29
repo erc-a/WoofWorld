@@ -1,4 +1,3 @@
-// src/admin/pages/FactManagement.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext'; // Lebih baik gunakan hook jika tersedia
